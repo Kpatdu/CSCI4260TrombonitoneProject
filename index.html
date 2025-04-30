@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trumbonitone</title>
+</head>
+<body>
+</body>
+<script>
+    const keysPressed = {};
+
+    const img_strt = new Image();
+    img_strt.src = './Trumpet.png';
+    img_strt.style.display = 'block';
+    const img_j = new Image();
+    img_j.src = './Trumpet_J.png';
+    img_j.style.display = 'none';
+    const img_k = new Image();
+    img_k.src = './Trumpet_K.png';
+    img_k.style.display = 'none';
+    const img_l = new Image();
+    img_l.src = './Trumpet_L.png';
+    img_l.style.display = 'none';
+    const img_jk = new Image();
+    img_jk.src = './Trumpet_KJ.png';
+    img_jk.style.display = 'none';
+    const img_jl = new Image();
+    img_jl.src = './Trumpet_LJ.png';
+    img_jl.style.display = 'none';
+    const img_kl = new Image();
+    img_kl.src = './Trumpet_KL.png';
+    img_kl.style.display = 'none';
+    const img_jkl = new Image();
+    img_jkl.src = './Trumpet_JKL.png';
+    img_jkl.style.display = 'none';
+
+    img_strt.onload = () => document.body.appendChild(img_strt);
+    img_j.onload = () => document.body.appendChild(img_j);
+    img_k.onload = () => document.body.appendChild(img_k);
+    img_l.onload = () => document.body.appendChild(img_l);
+    img_jk.onload = () => document.body.appendChild(img_jk);
+    img_jl.onload = () => document.body.appendChild(img_jl);
+    img_kl.onload = () => document.body.appendChild(img_kl);
+    img_jkl.onload = () => document.body.appendChild(img_jkl);
+
+    document.addEventListener('keydown', (e) => {
+        keysPressed[e.key.toLowerCase()] = true;
+    });
+
+    document.addEventListener('keyup', (e) => {
+        keysPressed[e.key.toLowerCase()] = false;
+    });
+
+    function updateDisplay() {
+        img_strt.style.display = 'none';
+        img_j.style.display = 'none';
+        img_k.style.display = 'none';
+        img_l.style.display = 'none';
+        img_jk.style.display = 'none';
+        img_jl.style.display = 'none';
+        img_kl.style.display = 'none';
+        img_jkl.style.display = 'none';
+
+        if (isNone()) {
+            img_strt.style.display = 'block';
+        } else if (isJ()) {
+            img_j.style.display = 'block';
+        } else if (isK()) {
+            img_k.style.display = 'block';
+        } else if (isL()) {
+            img_l.style.display = 'block';
+        } else if (isJK()) {
+            img_jk.style.display = 'block';
+        } else if (isJL()) {
+            img_jl.style.display = 'block';
+        } else if (isKL()) {
+            img_kl.style.display = 'block';
+        } else if (isJKL()) {
+            img_jkl.style.display = 'block';
+        }
+
+        requestAnimationFrame(updateDisplay);
+    }
+
+    requestAnimationFrame(updateDisplay);
+
+    function isNone() {
+        return Object.values(keysPressed).every(value => value === false);
+    }
+
+    function isJ() {
+        return (keysPressed['j'] && !keysPressed['k'] && !keysPressed['l']);
+    }
+
+    function isK() {
+        return (!keysPressed['j'] && keysPressed['k'] && !keysPressed['l']);
+    }
+
+    function isL() {
+        return (!keysPressed['j'] && !keysPressed['k'] && keysPressed['l']);
+    }
+
+    function isJK() {
+        return (keysPressed['j'] && keysPressed['k'] && !keysPressed['l']);
+    }
+
+    function isJL() {
+        return (keysPressed['j'] && !keysPressed['k'] && keysPressed['l']);
+    }
+
+    function isKL() {
+        return (!keysPressed['j'] && keysPressed['k'] && keysPressed['l']);
+    }
+
+    function isJKL() {
+        return (keysPressed['j'] && keysPressed['k'] && keysPressed['l']);
+    }
+
+</script>
+</html>
