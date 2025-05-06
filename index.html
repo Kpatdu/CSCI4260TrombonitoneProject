@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trumbonitone</title>
 
+    <!-- These imports are all essential for MIDI! -->
     <!-- polyfill -->
     <script src="./inc/shim/Base64.js" type="text/javascript"></script>
     <script src="./inc/shim/Base64binary.js" type="text/javascript"></script>
@@ -22,7 +23,6 @@
     <script src="./js/util/dom_request_script.js" type="text/javascript"></script>
 </head>
 <body>
-    <button onclick="playTrumpet()">Play Trumpet C4</button>
 </body>
 <script>
     window.onload = function () {
@@ -36,21 +36,38 @@
         });
     };
 
-    function playTrumpet() {
+    function playNote() {
+        /* For note to MIDI conversion, see here: https://newt.phys.unsw.edu.au/jw/notes.html */
+
         if (!midiReady) {
             console.warn("MIDI not ready yet!");
             return;
         }
-        const note = 60; // C4
+
+        const channel = 0;
         const velocity = 127;
         const delay = 0;
-        const duration = 0.75;
+        lastNote = note;
+        if (isNone()) note = 60;     // Plays C key. Spacebar is just ' '.
+        else if (isJ()) note = 65;   // Plays F key
+        else if (isJK()) note = 64;  // Plays E key
+        else if (isJL()) note = 62;
+        else if (isK()) note = 71;
+        else if (isKL()) note = 80;  // No idea what this plays.
+        else if (isJKL()) note = 66;
 
-        MIDI.noteOn(0, note, velocity, delay);
-        MIDI.noteOff(0, note, delay + duration);
+        if (keysPressed[' ']) {
+            MIDI.noteOff(channel, lastNote, velocity, delay);
+            MIDI.noteOn(channel, note, velocity, delay);
+        }
+        else {
+            MIDI.noteOff(channel, note, delay);
+        }
     }
 
     let midiReady = false;
+    let note = 0;
+    let lastNote = 0;
 
     const keysPressed = {};
 
@@ -90,10 +107,12 @@
 
     document.addEventListener('keydown', (e) => {
         keysPressed[e.key.toLowerCase()] = true;
+        playNote();
     });
 
     document.addEventListener('keyup', (e) => {
         keysPressed[e.key.toLowerCase()] = false;
+        playNote();
     });
 
     function updateDisplay() {
@@ -177,6 +196,7 @@
     requestAnimationFrame(updateDisplay);
 
     function isNone() {
+        // FIXME: This will need to omit space key from being pressed.
         return Object.values(keysPressed).every(value => value === false);
     }
 
