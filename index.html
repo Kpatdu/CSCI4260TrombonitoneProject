@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Trumbonitone</title>
+    <link rel="stylesheet" href="styles.css" />
 
     <!-- polyfill -->
     <script src="./inc/shim/Base64.js" type="text/javascript"></script>
@@ -19,27 +19,128 @@
     <script src="./js/midi/plugin.webmidi.js" type="text/javascript"></script>
     <!-- utils -->
     <script src="./js/util/dom_request_xhr.js" type="text/javascript"></script>
-    <script src="./js/util/dom_request_script.js" type="text/javascript"></script>
-</head>
-<body>
-    <button onclick="playTrumpet()">Play Trumpet C4</button>
-</body>
-<script>
-    window.onload = function () {
-        MIDI.loadPlugin({
-            soundfontUrl: "https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/",
-            instruments: ["trumpet"],
-            onsuccess: function () {
-                MIDI.programChange(0, MIDI.GM.byName["trumpet"].number);
-                midiReady = true;
-            }
-        });
-    };
+    <script
+      src="./js/util/dom_request_script.js"
+      type="text/javascript"
+    ></script>
+  </head>
+  <body>
+    <div class="app-container">
+      <header>
+        <h1>Trumbonitone</h1>
+        <p>Virtual Trumpet Instrument</p>
+        <button id="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+      </header>
 
-    function playTrumpet() {
+      <main>
+        <div class="instrument-container">
+          <div id="trumpet-display"></div>
+        </div>
+
+        <div class="controls-section">
+          <div class="play-controls">
+            <button class="play-button" onclick="playTrumpet()">
+              <span class="icon">🎵</span>
+              <span>Play Trumpet C4</span>
+            </button>
+          </div>
+
+          <!-- Metronome Section -->
+          <div class="metronome-container">
+            <h2>Metronome</h2>
+            <div class="metronome-display">
+              <div class="beat-indicator">
+                <div class="beat beat-1 active"></div>
+                <div class="beat beat-2"></div>
+                <div class="beat beat-3"></div>
+                <div class="beat beat-4"></div>
+              </div>
+              <div class="tempo-display">
+                <span id="bpm-value">120</span> BPM
+              </div>
+            </div>
+            <div class="metronome-controls">
+              <button id="tempo-down" onclick="changeTempo(-5)">-</button>
+              <input
+                type="range"
+                id="tempo-slider"
+                min="40"
+                max="220"
+                value="120"
+                oninput="updateTempo(this.value)"
+              />
+              <button id="tempo-up" onclick="changeTempo(5)">+</button>
+            </div>
+            <button
+              id="metronome-toggle"
+              class="metronome-button"
+              onclick="toggleMetronome()"
+            >
+              <span class="icon">▶</span>
+              <span>Start Metronome</span>
+            </button>
+          </div>
+
+          <div class="keyboard-guide">
+            <h2>Keyboard Controls</h2>
+            <div class="key-container">
+              <div class="key" data-key="j">J</div>
+              <div class="key" data-key="k">K</div>
+              <div class="key" data-key="l">L</div>
+            </div>
+            <p>Press keys to change trumpet valve positions</p>
+          </div>
+        </div>
+      </main>
+
+      <footer>
+        <p>Press multiple keys simultaneously for different combinations</p>
+      </footer>
+    </div>
+
+    <script>
+      // Theme handling
+      function toggleTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute("data-theme");
+        const newTheme = currentTheme === "dark" ? "light" : "dark";
+        html.setAttribute("data-theme", newTheme);
+
+        const themeButton = document.getElementById("theme-toggle");
+        themeButton.textContent =
+          newTheme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
+
+        // Save preference
+        localStorage.setItem("theme", newTheme);
+      }
+
+      // Load saved theme preference
+      window.addEventListener("load", () => {
+        const savedTheme = localStorage.getItem("theme") || "light";
+        document.documentElement.setAttribute("data-theme", savedTheme);
+        const themeButton = document.getElementById("theme-toggle");
+        themeButton.textContent =
+          savedTheme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
+      });
+
+      window.onload = function () {
+        MIDI.loadPlugin({
+          soundfontUrl:
+            "https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/",
+          instruments: ["trumpet", "woodblock"],
+          onsuccess: function () {
+            MIDI.programChange(0, MIDI.GM.byName["trumpet"].number);
+            MIDI.programChange(1, MIDI.GM.byName["woodblock"].number);
+            midiReady = true;
+            document.querySelector(".play-button").classList.add("ready");
+          },
+        });
+      };
+
+      function playTrumpet() {
         if (!midiReady) {
-            console.warn("MIDI not ready yet!");
-            return;
+          console.warn("MIDI not ready yet!");
+          return;
         }
         const note = 60; // C4
         const velocity = 127;
@@ -48,172 +149,311 @@
 
         MIDI.noteOn(0, note, velocity, delay);
         MIDI.noteOff(0, note, delay + duration);
-    }
 
-    let midiReady = false;
+        // Visual feedback
+        document.querySelector(".play-button").classList.add("playing");
+        setTimeout(() => {
+          document.querySelector(".play-button").classList.remove("playing");
+        }, duration * 1000);
+      }
 
-    const keysPressed = {};
+      let midiReady = false;
 
-    const img_strt = new Image();
-    img_strt.src = './assets/Trumpet.png';
-    img_strt.alt = '';
-    img_strt.style.display = 'block';
-    const img_j = new Image();
-    img_j.src = './assets/Trumpet_J.png';
-    img_j.alt = '';
-    img_j.style.display = 'none';
-    const img_k = new Image();
-    img_k.src = './assets/Trumpet_K.png';
-    img_k.alt = '';
-    img_k.style.display = 'none';
-    const img_l = new Image();
-    img_l.src = './assets/Trumpet_L.png';
-    img_l.alt = '';
-    img_l.style.display = 'none';
-    const img_jk = new Image();
-    img_jk.src = './assets/Trumpet_KJ.png';
-    img_jk.alt = '';
-    img_jk.style.display = 'none';
-    const img_jl = new Image();
-    img_jl.src = './assets/Trumpet_LJ.png';
-    img_jl.alt = '';
-    img_jl.style.display = 'none';
-    const img_kl = new Image();
-    img_kl.src = './assets/Trumpet_KL.png';
-    img_kl.alt = '';
-    img_kl.style.display = 'none';
-    const img_jkl = new Image();
-    img_jkl.src = './assets/Trumpet_JKL.png';
-    img_jkl.alt = '';
-    img_jkl.style.display = 'none';
+      const keysPressed = {};
 
-    img_strt.onload = () => document.body.appendChild(img_strt);
-    img_j.onload = () => document.body.appendChild(img_j);
-    img_k.onload = () => document.body.appendChild(img_k);
-    img_l.onload = () => document.body.appendChild(img_l);
-    img_jk.onload = () => document.body.appendChild(img_jk);
-    img_jl.onload = () => document.body.appendChild(img_jl);
-    img_kl.onload = () => document.body.appendChild(img_kl);
-    img_jkl.onload = () => document.body.appendChild(img_jkl);
+      const trumpetDisplay = document.getElementById("trumpet-display");
 
-    document.addEventListener('keydown', (e) => {
-        keysPressed[e.key.toLowerCase()] = true;
-    });
+      const img_strt = new Image();
+      img_strt.src = "./assets/Trumpet.png";
+      img_strt.alt = "Trumpet with no valves pressed";
+      img_strt.className = "trumpet-image";
 
-    document.addEventListener('keyup', (e) => {
-        keysPressed[e.key.toLowerCase()] = false;
-    });
+      const img_j = new Image();
+      img_j.src = "./assets/Trumpet_J.png";
+      img_j.alt = "Trumpet with J valve pressed";
+      img_j.className = "trumpet-image";
+      img_j.style.display = "none";
 
-    function updateDisplay() {
+      const img_k = new Image();
+      img_k.src = "./assets/Trumpet_K.png";
+      img_k.alt = "Trumpet with K valve pressed";
+      img_k.className = "trumpet-image";
+      img_k.style.display = "none";
+
+      const img_l = new Image();
+      img_l.src = "./assets/Trumpet_L.png";
+      img_l.alt = "Trumpet with L valve pressed";
+      img_l.className = "trumpet-image";
+      img_l.style.display = "none";
+
+      const img_jk = new Image();
+      img_jk.src = "./assets/Trumpet_KJ.png";
+      img_jk.alt = "Trumpet with J and K valves pressed";
+      img_jk.className = "trumpet-image";
+      img_jk.style.display = "none";
+
+      const img_jl = new Image();
+      img_jl.src = "./assets/Trumpet_LJ.png";
+      img_jl.alt = "Trumpet with J and L valves pressed";
+      img_jl.className = "trumpet-image";
+      img_jl.style.display = "none";
+
+      const img_kl = new Image();
+      img_kl.src = "./assets/Trumpet_KL.png";
+      img_kl.alt = "Trumpet with K and L valves pressed";
+      img_kl.className = "trumpet-image";
+      img_kl.style.display = "none";
+
+      const img_jkl = new Image();
+      img_jkl.src = "./assets/Trumpet_JKL.png";
+      img_jkl.alt = "Trumpet with all valves pressed";
+      img_jkl.className = "trumpet-image";
+      img_jkl.style.display = "none";
+
+      img_strt.onload = () => trumpetDisplay.appendChild(img_strt);
+      img_j.onload = () => trumpetDisplay.appendChild(img_j);
+      img_k.onload = () => trumpetDisplay.appendChild(img_k);
+      img_l.onload = () => trumpetDisplay.appendChild(img_l);
+      img_jk.onload = () => trumpetDisplay.appendChild(img_jk);
+      img_jl.onload = () => trumpetDisplay.appendChild(img_jl);
+      img_kl.onload = () => trumpetDisplay.appendChild(img_kl);
+      img_jkl.onload = () => trumpetDisplay.appendChild(img_jkl);
+
+      document.addEventListener("keydown", (e) => {
+        const key = e.key.toLowerCase();
+        if (key === "j" || key === "k" || key === "l") {
+          keysPressed[key] = true;
+          document
+            .querySelector(`.key[data-key="${key}"]`)
+            .classList.add("active");
+        }
+      });
+
+      document.addEventListener("keyup", (e) => {
+        const key = e.key.toLowerCase();
+        if (key === "j" || key === "k" || key === "l") {
+          keysPressed[key] = false;
+          document
+            .querySelector(`.key[data-key="${key}"]`)
+            .classList.remove("active");
+        }
+      });
+
+      function updateDisplay() {
         if (isNone()) {
-            img_strt.style.display = 'block';
-            img_j.style.display = 'none';
-            img_k.style.display = 'none';
-            img_l.style.display = 'none';
-            img_jk.style.display = 'none';
-            img_jl.style.display = 'none';
-            img_kl.style.display = 'none';
-            img_jkl.style.display = 'none';
+          img_strt.style.display = "block";
+          img_j.style.display = "none";
+          img_k.style.display = "none";
+          img_l.style.display = "none";
+          img_jk.style.display = "none";
+          img_jl.style.display = "none";
+          img_kl.style.display = "none";
+          img_jkl.style.display = "none";
         } else if (isJ()) {
-            img_strt.style.display = 'none';
-            img_j.style.display = 'block';
-            img_k.style.display = 'none';
-            img_l.style.display = 'none';
-            img_jk.style.display = 'none';
-            img_jl.style.display = 'none';
-            img_kl.style.display = 'none';
-            img_jkl.style.display = 'none';
+          img_strt.style.display = "none";
+          img_j.style.display = "block";
+          img_k.style.display = "none";
+          img_l.style.display = "none";
+          img_jk.style.display = "none";
+          img_jl.style.display = "none";
+          img_kl.style.display = "none";
+          img_jkl.style.display = "none";
         } else if (isK()) {
-            img_strt.style.display = 'none';
-            img_j.style.display = 'none';
-            img_k.style.display = 'block';
-            img_l.style.display = 'none';
-            img_jk.style.display = 'none';
-            img_jl.style.display = 'none';
-            img_kl.style.display = 'none';
-            img_jkl.style.display = 'none';
+          img_strt.style.display = "none";
+          img_j.style.display = "none";
+          img_k.style.display = "block";
+          img_l.style.display = "none";
+          img_jk.style.display = "none";
+          img_jl.style.display = "none";
+          img_kl.style.display = "none";
+          img_jkl.style.display = "none";
         } else if (isL()) {
-            img_strt.style.display = 'none';
-            img_j.style.display = 'none';
-            img_k.style.display = 'none';
-            img_l.style.display = 'block';
-            img_jk.style.display = 'none';
-            img_jl.style.display = 'none';
-            img_kl.style.display = 'none';
-            img_jkl.style.display = 'none';
+          img_strt.style.display = "none";
+          img_j.style.display = "none";
+          img_k.style.display = "none";
+          img_l.style.display = "block";
+          img_jk.style.display = "none";
+          img_jl.style.display = "none";
+          img_kl.style.display = "none";
+          img_jkl.style.display = "none";
         } else if (isJK()) {
-            img_strt.style.display = 'none';
-            img_j.style.display = 'none';
-            img_k.style.display = 'none';
-            img_l.style.display = 'none';
-            img_jk.style.display = 'block';
-            img_jl.style.display = 'none';
-            img_kl.style.display = 'none';
-            img_jkl.style.display = 'none';
+          img_strt.style.display = "none";
+          img_j.style.display = "none";
+          img_k.style.display = "none";
+          img_l.style.display = "none";
+          img_jk.style.display = "block";
+          img_jl.style.display = "none";
+          img_kl.style.display = "none";
+          img_jkl.style.display = "none";
         } else if (isJL()) {
-            img_strt.style.display = 'none';
-            img_j.style.display = 'none';
-            img_k.style.display = 'none';
-            img_l.style.display = 'none';
-            img_jk.style.display = 'none';
-            img_jl.style.display = 'block';
-            img_kl.style.display = 'none';
-            img_jkl.style.display = 'none';
+          img_strt.style.display = "none";
+          img_j.style.display = "none";
+          img_k.style.display = "none";
+          img_l.style.display = "none";
+          img_jk.style.display = "none";
+          img_jl.style.display = "block";
+          img_kl.style.display = "none";
+          img_jkl.style.display = "none";
         } else if (isKL()) {
-            img_strt.style.display = 'none';
-            img_j.style.display = 'none';
-            img_k.style.display = 'none';
-            img_l.style.display = 'none';
-            img_jk.style.display = 'none';
-            img_jl.style.display = 'none';
-            img_kl.style.display = 'block';
-            img_jkl.style.display = 'none';
+          img_strt.style.display = "none";
+          img_j.style.display = "none";
+          img_k.style.display = "none";
+          img_l.style.display = "none";
+          img_jk.style.display = "none";
+          img_jl.style.display = "none";
+          img_kl.style.display = "block";
+          img_jkl.style.display = "none";
         } else if (isJKL()) {
-            img_strt.style.display = 'none';
-            img_j.style.display = 'none';
-            img_k.style.display = 'none';
-            img_l.style.display = 'none';
-            img_jk.style.display = 'none';
-            img_jl.style.display = 'none';
-            img_kl.style.display = 'none';
-            img_jkl.style.display = 'block';
+          img_strt.style.display = "none";
+          img_j.style.display = "none";
+          img_k.style.display = "none";
+          img_l.style.display = "none";
+          img_jk.style.display = "none";
+          img_jl.style.display = "none";
+          img_kl.style.display = "none";
+          img_jkl.style.display = "block";
         }
 
         requestAnimationFrame(updateDisplay);
-    }
+      }
 
-    requestAnimationFrame(updateDisplay);
+      requestAnimationFrame(updateDisplay);
 
-    function isNone() {
-        return Object.values(keysPressed).every(value => value === false);
-    }
+      function isNone() {
+        return Object.values(keysPressed).every((value) => value === false);
+      }
 
-    function isJ() {
-        return (keysPressed['j'] && !keysPressed['k'] && !keysPressed['l']);
-    }
+      function isJ() {
+        return keysPressed["j"] && !keysPressed["k"] && !keysPressed["l"];
+      }
 
-    function isK() {
-        return (!keysPressed['j'] && keysPressed['k'] && !keysPressed['l']);
-    }
+      function isK() {
+        return !keysPressed["j"] && keysPressed["k"] && !keysPressed["l"];
+      }
 
-    function isL() {
-        return (!keysPressed['j'] && !keysPressed['k'] && keysPressed['l']);
-    }
+      function isL() {
+        return !keysPressed["j"] && !keysPressed["k"] && keysPressed["l"];
+      }
 
-    function isJK() {
-        return (keysPressed['j'] && keysPressed['k'] && !keysPressed['l']);
-    }
+      function isJK() {
+        return keysPressed["j"] && keysPressed["k"] && !keysPressed["l"];
+      }
 
-    function isJL() {
-        return (keysPressed['j'] && !keysPressed['k'] && keysPressed['l']);
-    }
+      function isJL() {
+        return keysPressed["j"] && !keysPressed["k"] && keysPressed["l"];
+      }
 
-    function isKL() {
-        return (!keysPressed['j'] && keysPressed['k'] && keysPressed['l']);
-    }
+      function isKL() {
+        return !keysPressed["j"] && keysPressed["k"] && keysPressed["l"];
+      }
 
-    function isJKL() {
-        return (keysPressed['j'] && keysPressed['k'] && keysPressed['l']);
-    }
-</script>
+      function isJKL() {
+        return keysPressed["j"] && keysPressed["k"] && keysPressed["l"];
+      }
+
+      // Metronome functionality
+      let metronomeActive = false;
+      let tempo = 120; // BPM
+      let metronomeInterval;
+      let currentBeat = 0;
+      const beatsPerMeasure = 4;
+
+      function updateTempo(value) {
+        tempo = parseInt(value);
+        document.getElementById("bpm-value").textContent = tempo;
+
+        // If metronome is running, restart it with new tempo
+        if (metronomeActive) {
+          clearInterval(metronomeInterval);
+          startMetronome();
+        }
+      }
+
+      function changeTempo(change) {
+        const slider = document.getElementById("tempo-slider");
+        const newTempo = parseInt(slider.value) + change;
+
+        // Keep tempo within bounds
+        if (
+          newTempo >= parseInt(slider.min) &&
+          newTempo <= parseInt(slider.max)
+        ) {
+          slider.value = newTempo;
+          updateTempo(newTempo);
+        }
+      }
+
+      function toggleMetronome() {
+        metronomeActive = !metronomeActive;
+        const button = document.getElementById("metronome-toggle");
+
+        if (metronomeActive) {
+          button.innerHTML =
+            '<span class="icon">■</span><span>Stop Metronome</span>';
+          button.classList.add("active");
+          startMetronome();
+        } else {
+          button.innerHTML =
+            '<span class="icon">▶</span><span>Start Metronome</span>';
+          button.classList.remove("active");
+          clearInterval(metronomeInterval);
+          resetBeatIndicators();
+        }
+      }
+
+      function startMetronome() {
+        const intervalMs = 60000 / tempo; // Convert BPM to milliseconds
+
+        // Reset beat counter
+        currentBeat = 0;
+
+        // Start the interval
+        metronomeInterval = setInterval(() => {
+          playMetronomeTick(currentBeat === 0); // Accent first beat
+          updateBeatIndicator();
+          currentBeat = (currentBeat + 1) % beatsPerMeasure;
+        }, intervalMs);
+      }
+
+      function playMetronomeTick(isAccent) {
+        if (!midiReady) return;
+
+        // Use MIDI to play woodblock sound
+        const note = isAccent ? 76 : 77; // High/low woodblock
+        const velocity = isAccent ? 100 : 80;
+        const delay = 0;
+        const duration = 0.05;
+
+        MIDI.noteOn(1, note, velocity, delay);
+        MIDI.noteOff(1, note, delay + duration);
+      }
+
+      function updateBeatIndicator() {
+        // Reset all beat indicators
+        resetBeatIndicators();
+
+        // Highlight current beat
+        const currentBeatEl = document.querySelector(
+          `.beat-${currentBeat + 1}`
+        );
+        if (currentBeatEl) {
+          currentBeatEl.classList.add("active");
+          currentBeatEl.classList.add("pulse");
+
+          // Remove pulse animation after it completes
+          setTimeout(() => {
+            currentBeatEl.classList.remove("pulse");
+          }, 150);
+        }
+      }
+
+      function resetBeatIndicators() {
+        const beats = document.querySelectorAll(".beat");
+        beats.forEach((beat) => {
+          beat.classList.remove("active");
+          beat.classList.remove("pulse");
+        });
+      }
+    </script>
+  </body>
 </html>
