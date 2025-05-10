@@ -5,215 +5,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trumbonitone</title>
-
-    <!-- polyfill -->
-    <script src="./inc/shim/Base64.js" type="text/javascript"></script>
-    <script src="./inc/shim/Base64binary.js" type="text/javascript"></script>
-    <script src="./inc/shim/WebAudioAPI.js" type="text/javascript"></script>
-    <!-- midi.js package -->
-    <script src="./js/midi/audioDetect.js" type="text/javascript"></script>
-    <script src="./js/midi/gm.js" type="text/javascript"></script>
-    <script src="./js/midi/loader.js" type="text/javascript"></script>
-    <script src="./js/midi/plugin.audiotag.js" type="text/javascript"></script>
-    <script src="./js/midi/plugin.webaudio.js" type="text/javascript"></script>
-    <script src="./js/midi/plugin.webmidi.js" type="text/javascript"></script>
-    <!-- utils -->
-    <script src="./js/util/dom_request_xhr.js" type="text/javascript"></script>
-    <script src="./js/util/dom_request_script.js" type="text/javascript"></script>
 </head>
+
+
+<header>
+    <div id="navbar"></div>
+    <h1>Welcome to our CSCI4260: UX Design Final Project!</h1>
+    <h2>Trumbonitone</h2>
+</header>
 <body>
-    <button onclick="playTrumpet()">Play Trumpet C4</button>
+    <h3>Click on an instrument you want to play with the navbar!</h3>
+    <p>This project focuses primarily on digitizing instruments that can be played in a web browser. 
+        Utilizing Javascript and MIDI, this allows us to generate sound when the user inputs a note!</p>
 </body>
 <script>
+    function loadNavbar() {
+        document.getElementById('navbar').innerHTML = 
+        '<object type = "text/html" data="navbar.html"></object>';
+    }
+
     window.onload = function () {
-        MIDI.loadPlugin({
-            soundfontUrl: "https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/",
-            instruments: ["trumpet"],
-            onsuccess: function () {
-                MIDI.programChange(0, MIDI.GM.byName["trumpet"].number);
-                midiReady = true;
-            }
-        });
+        loadNavbar();
     };
-
-    function playTrumpet() {
-        if (!midiReady) {
-            console.warn("MIDI not ready yet!");
-            return;
-        }
-        const note = 60; // C4
-        const velocity = 127;
-        const delay = 0;
-        const duration = 0.75;
-
-        MIDI.noteOn(0, note, velocity, delay);
-        MIDI.noteOff(0, note, delay + duration);
-    }
-
-    let midiReady = false;
-
-    const keysPressed = {};
-
-    const img_strt = new Image();
-    img_strt.src = './assets/Trumpet.png';
-    img_strt.alt = '';
-    img_strt.style.display = 'block';
-    const img_j = new Image();
-    img_j.src = './assets/Trumpet_J.png';
-    img_j.alt = '';
-    img_j.style.display = 'none';
-    const img_k = new Image();
-    img_k.src = './assets/Trumpet_K.png';
-    img_k.alt = '';
-    img_k.style.display = 'none';
-    const img_l = new Image();
-    img_l.src = './assets/Trumpet_L.png';
-    img_l.alt = '';
-    img_l.style.display = 'none';
-    const img_jk = new Image();
-    img_jk.src = './assets/Trumpet_KJ.png';
-    img_jk.alt = '';
-    img_jk.style.display = 'none';
-    const img_jl = new Image();
-    img_jl.src = './assets/Trumpet_LJ.png';
-    img_jl.alt = '';
-    img_jl.style.display = 'none';
-    const img_kl = new Image();
-    img_kl.src = './assets/Trumpet_KL.png';
-    img_kl.alt = '';
-    img_kl.style.display = 'none';
-    const img_jkl = new Image();
-    img_jkl.src = './assets/Trumpet_JKL.png';
-    img_jkl.alt = '';
-    img_jkl.style.display = 'none';
-
-    img_strt.onload = () => document.body.appendChild(img_strt);
-    img_j.onload = () => document.body.appendChild(img_j);
-    img_k.onload = () => document.body.appendChild(img_k);
-    img_l.onload = () => document.body.appendChild(img_l);
-    img_jk.onload = () => document.body.appendChild(img_jk);
-    img_jl.onload = () => document.body.appendChild(img_jl);
-    img_kl.onload = () => document.body.appendChild(img_kl);
-    img_jkl.onload = () => document.body.appendChild(img_jkl);
-
-    document.addEventListener('keydown', (e) => {
-        keysPressed[e.key.toLowerCase()] = true;
-    });
-
-    document.addEventListener('keyup', (e) => {
-        keysPressed[e.key.toLowerCase()] = false;
-    });
-
-    function updateDisplay() {
-        if (isNone()) {
-            img_strt.style.display = 'block';
-            img_j.style.display = 'none';
-            img_k.style.display = 'none';
-            img_l.style.display = 'none';
-            img_jk.style.display = 'none';
-            img_jl.style.display = 'none';
-            img_kl.style.display = 'none';
-            img_jkl.style.display = 'none';
-        } else if (isJ()) {
-            img_strt.style.display = 'none';
-            img_j.style.display = 'block';
-            img_k.style.display = 'none';
-            img_l.style.display = 'none';
-            img_jk.style.display = 'none';
-            img_jl.style.display = 'none';
-            img_kl.style.display = 'none';
-            img_jkl.style.display = 'none';
-        } else if (isK()) {
-            img_strt.style.display = 'none';
-            img_j.style.display = 'none';
-            img_k.style.display = 'block';
-            img_l.style.display = 'none';
-            img_jk.style.display = 'none';
-            img_jl.style.display = 'none';
-            img_kl.style.display = 'none';
-            img_jkl.style.display = 'none';
-        } else if (isL()) {
-            img_strt.style.display = 'none';
-            img_j.style.display = 'none';
-            img_k.style.display = 'none';
-            img_l.style.display = 'block';
-            img_jk.style.display = 'none';
-            img_jl.style.display = 'none';
-            img_kl.style.display = 'none';
-            img_jkl.style.display = 'none';
-        } else if (isJK()) {
-            img_strt.style.display = 'none';
-            img_j.style.display = 'none';
-            img_k.style.display = 'none';
-            img_l.style.display = 'none';
-            img_jk.style.display = 'block';
-            img_jl.style.display = 'none';
-            img_kl.style.display = 'none';
-            img_jkl.style.display = 'none';
-        } else if (isJL()) {
-            img_strt.style.display = 'none';
-            img_j.style.display = 'none';
-            img_k.style.display = 'none';
-            img_l.style.display = 'none';
-            img_jk.style.display = 'none';
-            img_jl.style.display = 'block';
-            img_kl.style.display = 'none';
-            img_jkl.style.display = 'none';
-        } else if (isKL()) {
-            img_strt.style.display = 'none';
-            img_j.style.display = 'none';
-            img_k.style.display = 'none';
-            img_l.style.display = 'none';
-            img_jk.style.display = 'none';
-            img_jl.style.display = 'none';
-            img_kl.style.display = 'block';
-            img_jkl.style.display = 'none';
-        } else if (isJKL()) {
-            img_strt.style.display = 'none';
-            img_j.style.display = 'none';
-            img_k.style.display = 'none';
-            img_l.style.display = 'none';
-            img_jk.style.display = 'none';
-            img_jl.style.display = 'none';
-            img_kl.style.display = 'none';
-            img_jkl.style.display = 'block';
-        }
-
-        requestAnimationFrame(updateDisplay);
-    }
-
-    requestAnimationFrame(updateDisplay);
-
-    function isNone() {
-        return Object.values(keysPressed).every(value => value === false);
-    }
-
-    function isJ() {
-        return (keysPressed['j'] && !keysPressed['k'] && !keysPressed['l']);
-    }
-
-    function isK() {
-        return (!keysPressed['j'] && keysPressed['k'] && !keysPressed['l']);
-    }
-
-    function isL() {
-        return (!keysPressed['j'] && !keysPressed['k'] && keysPressed['l']);
-    }
-
-    function isJK() {
-        return (keysPressed['j'] && keysPressed['k'] && !keysPressed['l']);
-    }
-
-    function isJL() {
-        return (keysPressed['j'] && !keysPressed['k'] && keysPressed['l']);
-    }
-
-    function isKL() {
-        return (!keysPressed['j'] && keysPressed['k'] && keysPressed['l']);
-    }
-
-    function isJKL() {
-        return (keysPressed['j'] && keysPressed['k'] && keysPressed['l']);
-    }
 </script>
 </html>
